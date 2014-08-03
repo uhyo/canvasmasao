@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>canvas masao test</title>
+    <script src="../canvasmasao.js"></script>
+  </head>
+  <body>
+    <script>
+      var game=new masao.Game(new masao.Config({
+        filename_title:"../images/title.gif"
+      }));
+      game.init();
+      var canvas=game.getCanvas();
+      //暫定的
+      canvas.width=512, canvas.height=320;
+      document.body.appendChild(canvas);
+      game.start();
+    </script>
+  </body>
+</html>
+
