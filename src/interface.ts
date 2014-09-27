@@ -1,3 +1,5 @@
+///<reference path="./image.ts"/>
+///<reference path="./status.ts"/>
 //よくつかうinterface
 declare module masao{
     //レイヤーの種類（数字が小さいほうが後ろ）
@@ -15,9 +17,32 @@ declare module masao{
         FOREGROUND = 4,
         maxBound = 4
     }
+    //ルーチンのレイヤー（処理順）
+    export enum RLayers{
+        minBound = 0,
+        NONE     = 0,
+        STARTUP  = 1,
+        MAIN     = 2,
+        CLEANUP  = 3,
+        maxBound = 3,
+    }
+    //ベクトル
     export interface Point{
         x:number;
         y:number;
+    }
+    //長方形
+    export interface Box{
+        x:number;
+        y:number;
+        width:number;
+        height:number;
+    }
+    //色
+    export interface Color{
+        r:number;
+        g:number;
+        b:number;
     }
     //物体を表すオブジェクト
     interface GameObject extends EventEmitter{
@@ -26,11 +51,14 @@ declare module masao{
         routine:Doable;
         //物体の描画担当
         renderer:Renderable;
+        //レイヤー
+        renderLayer:Layers;
+        routineLayer:RLayers;
     }
     interface Doable{
-        main():void;
+        main(state:GameState):void;
     }
     interface Renderable{
-        render(ctx:CanvasRenderingContext2D,scroll:Point):void;
+        render(grc:GameRenderingContext):void;
     }
 }

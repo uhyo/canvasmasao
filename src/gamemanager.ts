@@ -22,13 +22,18 @@ module masao{
             this.startScene();
             this.onEndScene(()=>{
                 //ゲーム開始
-                this.setScene(new scenes.StageScene(this.factoryfactory,this.manager));
+                var stage=new scenes.StageScene(this.factoryfactory,this.manager);
+                stage.setStage(1);
+                this.setScene(stage);
+                this.startScene();
                 this.onEndScene(()=>{
                 });
             });
         }
         //sceneをセットする
         private setScene(scene:Scene):void{
+            //ゲームオブジェクトを処お聞かする
+            this.manager.init();
             this.currentScene=scene;
         }
         //sceneをスタートする

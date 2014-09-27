@@ -1,5 +1,6 @@
-////<reference path="./gamemanager.ts"/>
-////<reference path="./renderer.ts"/>
+///<reference path="./gamemanager.ts"/>
+///<reference path="./status.ts"/>
+///<reference path="./renderer.ts"/>
 module masao{
     export class GameloopManager{
         private lasttime:number;
@@ -31,29 +32,41 @@ module masao{
     export class GameObjectManager{
         constructor(private view:View,private processor:RoutineProcessor){
         }
-        add(layer:Layers,obj:GameObject):void{
-            //Rendererに追加
-            this.view.add(layer,obj.renderer);
-            this.processor.add(obj.routine);
-            obj.once("destroy",this.remove.bind(this,layer,obj));
+        //初期化する
+        init():void{
+            this.view.init();
+            this.processor.init();
         }
-        private remove(layer:Layers,obj:GameObject):void{
+        add(obj:GameObject):void{
+            //Rendererに追加
+            this.view.add(obj.renderLayer,obj.renderer);
+            this.processor.add(obj.routineLayer,obj.routine);
+            obj.once("destroy",this.remove.bind(this,obj));
+        }
+        private remove(obj:GameObject):void{
             //オブジェクトはdestoryされたら除去する
-            this.view.remove(layer,obj.renderer);
-            this.processor.remove(obj.routine);
+            this.view.remove(obj.renderLayer,obj.renderer);
+            this.processor.remove(obj.routineLayer,obj.routine);
         }
     }
     //各オブジェクトの処理を担当
     export class RoutineProcessor{
-        private objects:Array<Doable>;
-        constructor(){
-            this.objects=[];
+        private layers:Array<Array<Doable>>;
+        constructor(private state:GameState){
+            this.init();
         }
-        add(obj:Doable):void{
-            this.objects.push(obj);
+        init():void{
+            //初期化
+            this.layers=[];
+            for(var i=RLayers.minBound;i<=RLayers.maxBound;i++){
+                this.layers[i]=[];
+            }
         }
-        remove(obj:Doable):void{
-            var os=this.objects;
+        add(layer:RLayers,obj:Doable):void{
+            this.layers[layer].push(obj);
+        }
+        remove(layer:RLayers,obj:Doable):void{
+            var os=this.layers[layer];
             for(var i=0,l=os.length;i<l;i++){
                 if(os[i]===obj){
                     os.splice(i,1);
@@ -63,9 +76,12 @@ module masao{
         }
         process():void{
             //removeで番号がずれてもいいように
-            var os=this.objects.concat([]);
-            for(var i=0,l=os.length;i<l;i++){
-                os[i].main();
+            var os:Array<Doable>;
+            for(var i=RLayers.minBound;i<=RLayers.maxBound;i++){
+                os=this.layers[i].concat([]);
+                for(var j=0,l=os.length;j<l;j++){
+                    os[j].main(this.state);
+                }
             }
         }
     }

@@ -2,10 +2,12 @@
 ///<reference path="./eventemitter3.d.ts"/>
 ///<reference path="./factory.ts"/>
 ///<reference path="./interface.ts"/>
+///<reference path="./image.ts"/>
 module masao{
     export class Renderer{
         private canvas:HTMLCanvasElement;
         private context:CanvasRenderingContext2D;
+        private grc:GameRenderingContext;
         private factoryfactory:factory.FactoryFactory;
         private view:View;
         constructor(ff:factory.FactoryFactory){
@@ -14,8 +16,14 @@ module masao{
         }
         //初期化
         init():void{
-            this.canvas=document.createElement("canvas");
+            var rf=this.factoryfactory.resourceFactory();
+            var cf=this.factoryfactory.canvasFactory();
+            var gf=this.factoryfactory.gameRenderingContextFactory();
+            this.canvas=cf.canvas();
             this.context=this.canvas.getContext("2d");
+            this.grc=gf.grc();
+            this.grc.init(this.context,rf.pattern());
+            this.grc.setScroll({x:0,y:0});
         }
         //getter
         getCanvas():HTMLCanvasElement{
@@ -26,18 +34,16 @@ module masao{
         }
         //1回描画する
         render():void{
-            this.view.render(this.context);
+            this.view.render(this.grc);
         }
     }
     //描画対象オブジェクトをまとめておく
     export class View{
         private layers:Array<Array<Renderable>>;
-        public scroll:Point;
         constructor(private renderer:Renderer){
-            this.scroll={
-                x:0,
-                y:0
-            };
+            this.init();
+        }
+        init():void{
             this.layers=[];
             for(var i=Layers.minBound;i<=Layers.maxBound;i++){
                 this.layers[i]=[];
@@ -58,13 +64,13 @@ module masao{
             }
         }
         //描画する
-        render(ctx:CanvasRenderingContext2D):void{
+        render(grc:GameRenderingContext):void{
             //奥のレイヤーから順番に
             var arr:Array<Renderable>;
             for(var i=Layers.minBound;i<=Layers.maxBound;i++){
                 arr=this.layers[i];
                 for(var j=0,l=arr.length;j<l;j++){
-                    arr[j].render(ctx,this.scroll);
+                    arr[j].render(grc);
                 }
             }
         }
